@@ -95,10 +95,24 @@ public class Planner {
 		} else
 			throw new UnsupportedOperationException();
 	}
-
+	public int executeLoad(String cmd, Transaction tx) {
+		if (tx.isReadOnly())
+			throw new UnsupportedOperationException();
+		Parser parser = new Parser(cmd);
+		Object obj = parser.updateCommand();
+		if (obj.getClass().equals(InsertData.class)) {
+			Verifier.verifyInsertData((InsertData) obj, tx);
+			return uPlanner.executeInsert((InsertData) obj, tx);
+		} else
+			throw new UnsupportedOperationException();
+	}
 	public int executeInsert(InsertData cmd, Transaction tx) {
 		if (tx.isReadOnly())
 			throw new UnsupportedOperationException();
 		return uPlanner.executeInsert(cmd, tx);
+	}
+
+	public void executeTrainIndex(String idxName, Transaction tx) {
+		uPlanner.executeTrainIndex(idxName, tx);
 	}
 }

@@ -75,6 +75,7 @@
 			<name>Wilbert Harriman</name>
 			<email>wilbert@datalab.cs.nthu.edu.tw</email>
 		</developer>
+		
 	</developers>
 
 	<scm>
@@ -99,6 +100,27 @@
 			<artifactId>jaydio</artifactId>
 			<version>0.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.haifengl</groupId>
+			<artifactId>smile-core</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.haifengl</groupId>
+			<artifactId>smile-data</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+		<dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.13.2</version>
+        <scope>test</scope>
+    	</dependency>
+		<dependency>
+        <groupId>com.github.haifengl</groupId>
+        <artifactId>smile-math</artifactId>
+        <version>2.6.0</version>
+    	</dependency>
 	</dependencies>
 
 	<!-- For deploying to the central repository -->
