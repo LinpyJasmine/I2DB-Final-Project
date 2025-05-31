@@ -15,9 +15,9 @@
  *******************************************************************************/
 package org.vanilladb.core.storage.index;
 
+import org.vanilladb.core.sql.distfn.DistanceFn;
 import org.vanilladb.core.storage.index.btree.BTreeIndex;
 import org.vanilladb.core.storage.index.hash.HashIndex;
-// import org.vanilladb.core.storage.index.lsh.LSHashIndex;
 import org.vanilladb.core.storage.metadata.index.IndexInfo;
 import org.vanilladb.core.storage.record.RecordId;
 import org.vanilladb.core.storage.tx.Transaction;
@@ -154,5 +154,9 @@ public abstract class Index {
 
 	public SearchKeyType getKeyType() {
 		return keyType;
+	}
+
+	public void kmeans(DistanceFn embField){
+		return;
 	}
 }

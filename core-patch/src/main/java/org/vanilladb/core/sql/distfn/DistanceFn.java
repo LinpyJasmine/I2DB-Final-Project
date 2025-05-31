@@ -4,7 +4,7 @@ import org.vanilladb.core.sql.VectorConstant;
 
 public abstract class DistanceFn {
 
-    protected VectorConstant query;
+    public VectorConstant query;
     private String fieldName;
 
     public DistanceFn(String fieldName) {

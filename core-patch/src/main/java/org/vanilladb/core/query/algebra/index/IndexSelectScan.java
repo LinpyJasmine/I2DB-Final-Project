@@ -19,6 +19,7 @@ import org.vanilladb.core.query.algebra.Scan;
 import org.vanilladb.core.query.algebra.TableScan;
 import org.vanilladb.core.query.algebra.UpdateScan;
 import org.vanilladb.core.sql.Constant;
+import org.vanilladb.core.sql.distfn.DistanceFn;
 import org.vanilladb.core.storage.index.Index;
 import org.vanilladb.core.storage.index.SearchRange;
 import org.vanilladb.core.storage.record.RecordId;
@@ -31,6 +32,8 @@ public class IndexSelectScan implements UpdateScan {
 	private TableScan ts;
 	private SearchRange searchRange;
 
+	private DistanceFn embField;	
+
 	/**
 	 * Creates an index select scan for the specified index and search range.
 	 * 
@@ -41,10 +44,12 @@ public class IndexSelectScan implements UpdateScan {
 	 * @param ts
 	 *            the table scan of data table
 	 */
-	public IndexSelectScan(Index idx, SearchRange searchRange, TableScan ts) {
+	public IndexSelectScan(Index idx, SearchRange searchRange, TableScan ts, DistanceFn embField) {
 		this.idx = idx;
 		this.searchRange = searchRange;
 		this.ts = ts;
+
+		this.embField = embField;
 	}
 
 	/**
@@ -57,6 +62,7 @@ public class IndexSelectScan implements UpdateScan {
 	@Override
 	public void beforeFirst() {
 		idx.beforeFirst(searchRange);
+		idx.kmeans(embField);
 	}
 
 	/**
