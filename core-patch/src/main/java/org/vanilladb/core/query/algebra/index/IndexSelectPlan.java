@@ -24,6 +24,7 @@ import org.vanilladb.core.query.algebra.TablePlan;
 import org.vanilladb.core.query.algebra.TableScan;
 import org.vanilladb.core.sql.ConstantRange;
 import org.vanilladb.core.sql.Schema;
+import org.vanilladb.core.sql.distfn.DistanceFn;
 import org.vanilladb.core.storage.index.Index;
 import org.vanilladb.core.storage.index.SearchKeyType;
 import org.vanilladb.core.storage.index.SearchRange;
@@ -42,6 +43,8 @@ public class IndexSelectPlan implements Plan {
 	private Transaction tx;
 	private Histogram hist;
 
+	private DistanceFn embField = null;
+
 	/**
 	 * Creates a new index-select node in the query tree for the specified index
 	 * and search range.
@@ -56,12 +59,25 @@ public class IndexSelectPlan implements Plan {
 	 *            the calling transaction
 	 */
 	public IndexSelectPlan(TablePlan tp, IndexInfo ii,
+			Map<String, ConstantRange> searchRanges, Transaction tx, DistanceFn embField) {
+		this.tp = tp;
+		this.ii = ii;
+		this.searchRanges = searchRanges;
+		this.tx = tx;
+		hist = SelectPlan.constantRangeHistogram(tp.histogram(), searchRanges);
+
+		this.embField = embField;
+	}
+
+	// Original constructor for UpdatePlanner
+	public IndexSelectPlan(TablePlan tp, IndexInfo ii,
 			Map<String, ConstantRange> searchRanges, Transaction tx) {
 		this.tp = tp;
 		this.ii = ii;
 		this.searchRanges = searchRanges;
 		this.tx = tx;
 		hist = SelectPlan.constantRangeHistogram(tp.histogram(), searchRanges);
+
 	}
 
 	/**
@@ -75,8 +91,9 @@ public class IndexSelectPlan implements Plan {
 		TableScan ts = (TableScan) tp.open();
 		Index idx = ii.open(tx);
 		return new IndexSelectScan(idx, 
-				new SearchRange(ii.fieldNames(), schema(), searchRanges), ts);
+				new SearchRange(ii.fieldNames(), schema(), searchRanges), ts, embField);
 	}
+	
 
 	/**
 	 * Estimates the number of block accesses to compute the index selection,

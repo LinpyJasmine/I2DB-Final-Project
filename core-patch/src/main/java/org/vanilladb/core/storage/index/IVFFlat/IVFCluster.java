@@ -4,16 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.vanilladb.core.sql.VectorConstant;
+import org.vanilladb.core.sql.distfn.DistanceFn;
+import org.vanilladb.core.storage.record.RecordId;
 
 public class IVFCluster {
     private int clusterIdx;                 // cluster index
-    private float[] centroid;               // centroid vector
-    private List<float[]> vectorList;       // list of vectors in the cluster
+	private DistanceFn embField;
+    private VectorConstant centroid;               // centroid vector
+    private List<VectorConstant> vectorList;       // list of vectors in the cluster
+	private List<RecordId> recordIdList = new ArrayList<>();
 	private int vectorCount;             // number of vectors in the cluster
 
-    public IVFCluster(int clusterIdx, float[] centroid) {
+	public IVFCluster() {
+        this.vectorList = new ArrayList<>();
+		this.vectorCount = 0;
+    }
+    public IVFCluster(int clusterIdx, DistanceFn embField ) {
         this.clusterIdx = clusterIdx;
-        this.centroid = centroid;
+		this.embField = embField;
+        this.centroid = embField.query;
         this.vectorList = new ArrayList<>();
 		this.vectorCount = 0;
     }
@@ -22,11 +31,11 @@ public class IVFCluster {
         return clusterIdx;
     }
 
-    public float[] getCentroid() {
+    public VectorConstant getCentroid() {
         return centroid;
     }
 
-    public List<float[]> getVectorList() {
+    public List<VectorConstant> getVectorList() {
         return vectorList;
     }
 
@@ -34,17 +43,26 @@ public class IVFCluster {
 		return vectorCount;
 	}
 
-    public void addVector(float[] vector) {
+	public List<RecordId> getRecordIds() {
+        return recordIdList;
+    }
+
+    public void addVector(VectorConstant vector, RecordId rid) {
         vectorList.add(vector);
-		vectorCount++;
+        recordIdList.add(rid);
     }
 
-	public void delete(float[] vector) {
-		vectorList.remove(vector);
-		vectorCount--;
+	public boolean delete(VectorConstant vector) {
+        int idx = vectorList.indexOf(vector);
+        if (idx >= 0) {
+            vectorList.remove(idx);
+            recordIdList.remove(idx);
+            return true;
+        }
+        return false;
     }
 
-	public boolean checkExistence(float[] vector) {
+	public boolean checkExistence(VectorConstant vector) {
 		return vectorList.contains(vector);
 	}
 
@@ -56,25 +74,24 @@ public class IVFCluster {
 			return false; // no vectors, nothing to update
 		}
 
-		int dim = centroid.length;
-		float[] newCentroid = new float[dim];
+		int dim = centroid.dimension();
+		float[] newCentroidValues = new float[dim];
 
 		// Sum all vectors
-		for (float[] vec : vectorList) {
+		for (VectorConstant vec : vectorList) {
 			for (int i = 0; i < dim; i++) {
-				newCentroid[i] += vec[i];
+				newCentroidValues[i] += vec.get(i);
 			}
 		}
 
 		// Average
 		for (int i = 0; i < dim; i++) {
-			newCentroid[i] /= vectorList.size();
+			newCentroidValues[i] /= vectorList.size();
 		}
 
 		// Check if centroid updated (using Euclidean distance)
-		VectorConstant oldCentroidVec = new VectorConstant(centroid);
-		VectorConstant newCentroidVec = new VectorConstant(newCentroid);
-		double shift = EuclideanDistance(oldCentroidVec, newCentroidVec);
+		VectorConstant newCentroid = new VectorConstant(newCentroidValues);
+		double shift = EuclideanDistance(centroid, newCentroid);
 		boolean isUpdated = shift > 1e-6; // small threshold
 		if (isUpdated) {
 			centroid = newCentroid;
